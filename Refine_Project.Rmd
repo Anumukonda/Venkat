@@ -1,0 +1,83 @@
+---
+title: "Data Wrangling; Exercise 1 "
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+#Load Packages
+
+```{r, messages= FALSE, warning=FALSE}
+library(readr)
+library(dplyr)
+library(tidyr)
+```
+
+# Step 0: To Load the data in RStudio
+```{r}
+refine <- tbl_df(read.csv("refine.csv"))
+refine %>% head()
+```
+
+```{r}
+
+Cleanup <- agrep("ilips", refine$company, ignore.case=TRUE, value = TRUE)
+Cleanup %>% head()
+```
+
+
+# Step 1: To Clean up brand names
+```{r}
+Cleanup_Brandnames <- mutate(refine, 
+                      company = ifelse (company %in% c("Phillips", "phillips" , "philips" , "phllips" ,   
+                                        "phillps","phillipS", "phlips","fillips"),"philips",
+                               ifelse (company %in% c("akz0", "ak zo", "Akzo", "AKZO","akzo"), "akzo",
+                               ifelse (company %in% c("unilvr", "unlever","unilver","unilever","Unilever"),                                              "unilever",    
+                                ifelse (company %in% c("Van Houten" , "van Houten", "van houten", "van houten", "Van Houten"), "van houten", company)))))
+Cleanup_Brandnames %>% print(n=25)
+```
+
+
+
+
+
+# Step 2: Separate product code and number
+```{r}
+str(refine)
+Separate_refine <- separate(Cleanup_Brandnames, Product.code...number, c("product_code","product_number"), sep = "-")
+Separate_refine %>% head()
+```
+
+# Step 3: Add product categories
+```{r}
+Add_Category_refine <- mutate(Separate_refine,
+                       product_category =  ifelse (product_code == "p", "Smartphone",
+                                           ifelse (product_code == "v", "TV",
+                                           ifelse (product_code == "x", "Laptop",  
+                                           ifelse (product_code == "q", "Tablet", NA)))))
+Add_Category_refine %>% select(product_category) 
+Add_Category_refine %>% head()
+```
+
+# Step 4:  Add full address for geocoding
+```{r}
+Add_full_Address <- unite(Add_Category_refine, 
+                          full_address, address, city, country, sep = ",", remove = TRUE)
+Add_full_Address %>% select(full_address) 
+Add_full_Address %>% head()
+```
+
+ 
+         
+               
+           
+
+
+
+
+
+
+
